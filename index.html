@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAONOCASTER AME2 연습실 · Interactive Practice Studio</title>
+<meta name="description" content="MAONOCASTER AME2 (Maonocaster E2) 오디오 인터페이스의 모든 기능을 실제 마이크로 연습하는 인터랙티브 사이트. Interactive practice studio for the Maono AME2 podcast console.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <div class="logo"><span class="dot"></span><span>MAONOCASTER AME2<small data-t="subtitle">인터랙티브 연습실</small></span></div>
+      <div class="spacer"></div>
+      <div id="devBadge" class="badge"><i class="pulse"></i><span data-t="badgeIdle">장치 미확인</span></div>
+      <div class="langs" role="group" aria-label="Language">
+        <button data-lang="ko" aria-pressed="true">한국어</button>
+        <button data-lang="en" aria-pressed="false">EN</button>
+        <button data-lang="es" aria-pressed="false">ES</button>
+      </div>
+    </div>
+    <nav id="nav" role="tablist"></nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= TAB 1 : CONNECT ================= -->
+  <section class="tab on" id="tab-connect" role="tabpanel">
+    <div class="hero">
+      <h1><span data-t="heroA">실제 마이크로 연습하는</span> <span class="g" data-t="heroB">AME2 연습실</span></h1>
+      <p data-t="heroP">브라우저가 AME2를 오디오 장치로 직접 읽어 레벨·노이즈·루프백·리버브를 실시간으로 확인합니다. 콘솔의 26개 조작부를 하나씩 눌러보고, 17개 미션으로 모든 기능을 순서대로 익히세요.</p>
+      <div class="chips">
+        <span class="chip" data-t="chip1">실시간 레벨 미터 (dBFS)</span>
+        <span class="chip" data-t="chip2">A/B 녹음 비교</span>
+        <span class="chip" data-t="chip3">루프백 자동 판정</span>
+        <span class="chip" data-t="chip4">노이즈 플로어 측정</span>
+        <span class="chip" data-t="chip5">가상 노브 프리셋</span>
+        <span class="chip" data-t="chip6">사운드패드 시뮬레이터</span>
+      </div>
+    </div>
+
+    <h2 class="sec"><span class="ic">1</span><span data-t="s_dev">장치 연결 확인</span></h2>
+    <p class="lead" data-t="s_devP">아래 버튼을 눌러 마이크 권한을 허용하면 연결된 오디오 장치 목록이 나옵니다. 이름에 Maono / AME2 / E2 가 보이면 정상 연결입니다.</p>
+    <div class="card">
+      <div class="row">
+        <button class="btn" id="btnPerm">🎙 <span data-t="btnPerm">장치 확인 시작</span></button>
+        <button class="btn ghost sm" id="btnRefresh" disabled><span data-t="btnRefresh">목록 새로고침</span></button>
+      </div>
+      <div id="permMsg" class="note" data-t="permHint">※ https(GitHub Pages) 또는 localhost에서만 마이크 접근이 허용됩니다.</div>
+      <div class="devlist" id="devList"></div>
+      <div class="grid g2" style="margin-top:14px">
+        <div>
+          <label class="lb" data-t="lbIn">입력 장치 (AME2 선택)</label>
+          <select id="selIn" style="width:100%"></select>
+        </div>
+        <div>
+          <label class="lb" data-t="lbOut">출력 장치 (모니터용)</label>
+          <select id="selOut" style="width:100%"></select>
+        </div>
+      </div>
+      <div id="devInfo" class="vals" style="margin-top:12px"></div>
+    </div>
+
+    <h2 class="sec"><span class="ic">2</span><span data-t="s_meter">실시간 레벨 미터 · 게인 연습</span></h2>
+    <p class="lead" data-t="s_meterP">말하면서 MIC 페이더와 측면 게인 스위치(40/50/60dB)를 조절해 초록 구간(-18 ~ -6 dBFS)에 머물게 하세요. 빨간 CLIP 램프가 켜지면 게인이 과합니다.</p>
+    <div class="card">
+      <div class="meterbox">
+        <div class="mrow"><span class="lbl">L</span><div class="track"><div class="zone"></div><div class="fill" id="fillL"></div><div class="pk" id="pkL"></div></div></div>
+        <div class="mrow"><span class="lbl">R</span><div class="track"><div class="zone"></div><div class="fill" id="fillR"></div><div class="pk" id="pkR"></div></div></div>
+        <div class="scale"><span>-60</span><span>-40</span><span>-24</span><span>-12</span><span>-6</span><span>0</span></div>
+      </div>
+      <div class="vals">
+        <span data-t="vRms">RMS</span> <b id="vRms">—</b>
+        <span data-t="vPeak">PEAK</span> <b id="vPeak">—</b>
+        <span class="led sig" id="ledSig"><i></i>SIGNAL</span>
+        <span class="led" id="ledClip"><i></i>CLIP</span>
+      </div>
+      <canvas id="cvWave" height="120" style="margin-top:12px"></canvas>
+      <canvas id="cvSpec" height="110" style="margin-top:9px"></canvas>
+      <div class="row" style="margin-top:12px">
+        <button class="btn ghost sm" id="btnNoise" disabled>📉 <span data-t="btnNoise">노이즈 플로어 5초 측정</span></button>
+        <button class="btn ghost sm" id="btnTone" disabled>🔊 <span data-t="btnTone">1kHz 테스트 톤</span></button>
+        <button class="btn ghost sm" id="btnPink" disabled>🌫 <span data-t="btnPink">핑크 노이즈</span></button>
+      </div>
+      <div id="noiseOut" class="note"></div>
+    </div>
+
+    <h2 class="sec"><span class="ic">3</span><span data-t="s_ab">A / B 녹음 비교 (리버브·DENOISE·PITCH)</span></h2>
+    <p class="lead" data-t="s_abP">효과를 끈 상태로 A에 녹음하고, 효과를 켠 뒤 B에 녹음해 번갈아 들어보세요. 파형이 함께 그려지므로 SIDE CHAIN 더킹도 눈으로 확인됩니다.</p>
+    <div class="card">
+      <div class="readbox">
+        <div id="readTxt">—</div>
+        <div class="src"><button class="btn ghost sm" id="btnNextTxt"><span data-t="btnNextTxt">다른 문장</span></button></div>
+      </div>
+      <div class="grid g2" style="margin-top:14px">
+        <div class="zonecard">
+          <h4>SLOT A</h4>
+          <div class="row">
+            <button class="btn sm" data-rec="A" disabled>⏺ <span data-t="btnRec">녹음</span></button>
+            <button class="btn ghost sm" data-play="A" disabled>▶ <span data-t="btnPlay">재생</span></button>
+            <span class="note" id="infoA" style="margin:0"></span>
+          </div>
+          <canvas data-cv="A" height="74" style="margin-top:10px"></canvas>
+        </div>
+        <div class="zonecard">
+          <h4>SLOT B</h4>
+          <div class="row">
+            <button class="btn sm" data-rec="B" disabled>⏺ <span data-t="btnRec">녹음</span></button>
+            <button class="btn ghost sm" data-play="B" disabled>▶ <span data-t="btnPlay">재생</span></button>
+            <span class="note" id="infoB" style="margin:0"></span>
+          </div>
+          <canvas data-cv="B" height="74" style="margin-top:10px"></canvas>
+        </div>
+      </div>
+      <div class="note" data-t="abNote">최대 30초까지 녹음됩니다. 녹음 중 같은 버튼을 다시 누르면 정지합니다.</div>
+    </div>
+
+    <h2 class="sec"><span class="ic">4</span><span data-t="s_loop">루프백 자동 테스트</span></h2>
+    <p class="lead" data-t="s_loopP">PC에서 재생되는 소리가 녹음에도 섞여 들어가는지(LOOPBACK) 확인합니다. 출력 장치를 Maonocaster로 지정하고 테스트를 누르면, 두 개의 기준 톤이 입력으로 돌아오는지 분석해 판정합니다.</p>
+    <div class="card">
+      <div class="row">
+        <button class="btn" id="btnLoop" disabled>🔁 <span data-t="btnLoop">루프백 테스트 (5초)</span></button>
+        <span class="note" style="margin:0" data-t="loopHint">헤드폰을 꽂고 음량은 중간으로 두세요.</span>
+      </div>
+      <div id="loopOut" class="note"></div>
+    </div>
+  </section>
+
+  <!-- ================= TAB 2 : BOARD ================= -->
+  <section class="tab" id="tab-board" role="tabpanel">
+    <h2 class="sec"><span class="ic">◎</span><span data-t="s_board">콘솔 둘러보기 · 26개 조작부</span></h2>
+    <p class="lead" data-t="s_boardP">공식 매뉴얼의 번호 순서대로 정리했습니다. 항목을 누르면 기능, 연습 방법, 권장 위치가 나옵니다.</p>
+    <div class="board" id="board"></div>
+    <div class="detail" id="detail">
+      <div class="dh"><h3 data-t="pickOne">왼쪽에서 조작부를 선택하세요</h3></div>
+      <p class="note" data-t="pickOneP">노브 · 버튼 · 포트 · 표시부로 묶어두었습니다.</p>
+    </div>
+  </section>
+
+  <!-- ================= TAB 3 : KNOBS ================= -->
+  <section class="tab" id="tab-knobs" role="tabpanel">
+    <h2 class="sec"><span class="ic">◉</span><span data-t="s_knob">노브 · 버튼 연습 + 상황별 프리셋</span></h2>
+    <p class="lead" data-t="s_knobP">가상 노브를 드래그해 보고, 아래 프리셋을 누르면 상황별 권장 위치로 한 번에 맞춰집니다. 실제 기기를 같은 위치로 돌려놓고 소리를 비교해 보세요.</p>
+    <div class="card">
+      <div class="row" id="presetRow" style="margin-bottom:16px"></div>
+      <div id="presetNote" class="warn" style="display:none"></div>
+      <h4 style="margin:16px 0 10px;font-size:12px;letter-spacing:.8px;color:var(--amber)">KNOBS</h4>
+      <div class="knobs" id="knobs"></div>
+      <h4 style="margin:22px 0 10px;font-size:12px;letter-spacing:.8px;color:var(--amber)">FADERS / MIC</h4>
+      <div class="faders" id="faders"></div>
+      <h4 style="margin:22px 0 10px;font-size:12px;letter-spacing:.8px;color:var(--amber)">EFFECT &amp; ROUTING BUTTONS</h4>
+      <div class="toggles" id="toggles"></div>
+      <h4 style="margin:22px 0 10px;font-size:12px;letter-spacing:.8px;color:var(--amber)">AUTO-TUNE · 12 KEYS</h4>
+      <div class="autotune" id="autotune"></div>
+      <div class="note" data-t="atNote">짧게 누르면 해당 키로 오토튠이 켜지고, 길게 누르면 꺼집니다. 노래 키와 맞지 않으면 음정이 어색해지니 반드시 곡의 키로 맞추세요.</div>
+      <div class="row" style="margin-top:18px">
+        <button class="btn ghost sm" id="btnSaveK">💾 <span data-t="btnSaveK">내 세팅 저장</span></button>
+        <button class="btn ghost sm" id="btnLoadK">📂 <span data-t="btnLoadK">내 세팅 불러오기</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TAB 4 : MISSIONS ================= -->
+  <section class="tab" id="tab-missions" role="tabpanel">
+    <h2 class="sec"><span class="ic">✓</span><span data-t="s_mis">기능 미션 17</span></h2>
+    <p class="lead" data-t="s_misP">위에서부터 순서대로 따라 하면 AME2의 모든 기능을 한 번씩 다 써보게 됩니다. 체크 상태는 브라우저에 저장됩니다.</p>
+    <div class="card">
+      <div class="row"><span class="score" id="misScore">0 / 0</span><div class="spacer"></div>
+        <button class="btn ghost sm" id="btnResetMis"><span data-t="btnResetMis">진행 초기화</span></button></div>
+      <div class="bar"><i id="misBar"></i></div>
+    </div>
+    <div id="missions" style="margin-top:16px"></div>
+  </section>
+
+  <!-- ================= TAB 5 : PADS ================= -->
+  <section class="tab" id="tab-pads" role="tabpanel">
+    <h2 class="sec"><span class="ic">♪</span><span data-t="s_pad">사운드패드 11개 연습</span></h2>
+    <p class="lead" data-t="s_padP">실제 기기와 같은 방식으로 동작하는 시뮬레이터입니다. 3초 이상 길게 누르면 녹음이 시작되고, 짧게 누르면 재생됩니다. A·B·C는 1분, 나머지 8개는 약 20초까지 저장됩니다.</p>
+    <div class="card">
+      <div class="row" style="margin-bottom:14px">
+        <button class="tg" id="tgLoop">LOOP<small data-t="padLoop">반복 재생</small></button>
+        <div style="min-width:170px">
+          <label class="lb">PAD VOL</label>
+          <input type="range" id="padVol" min="0" max="100" value="75" style="width:100%;accent-color:var(--amber)">
+        </div>
+        <button class="btn ghost sm" id="btnPadClear"><span data-t="btnPadClear">전체 지우기</span></button>
+      </div>
+      <div class="pads" id="pads"></div>
+      <div class="note" data-t="padNote">실제 기기에서는 녹음 중 같은 버튼을 다시 누르면 녹음이 끝납니다. 패드는 PAD VOL 노브로 음량을 조절하고, 기본 상태에서는 저장된 효과음이 없습니다.</div>
+    </div>
+  </section>
+
+  <!-- ================= TAB 6 : SCENARIOS ================= -->
+  <section class="tab" id="tab-scn" role="tabpanel">
+    <h2 class="sec"><span class="ic">▶</span><span data-t="s_scn">실전 시나리오</span></h2>
+    <p class="lead" data-t="s_scnP">목적별 케이블 연결과 버튼 상태를 그대로 따라 하면 됩니다. 각 시나리오의 프리셋 버튼을 누르면 노브 연습 탭이 같은 세팅으로 맞춰집니다.</p>
+    <div class="grid g2" id="scns"></div>
+  </section>
+
+  <!-- ================= TAB 7 : TROUBLE ================= -->
+  <section class="tab" id="tab-trouble" role="tabpanel">
+    <h2 class="sec"><span class="ic">!</span><span data-t="s_tr">문제 해결</span></h2>
+    <p class="lead" data-t="s_trP">공식 FAQ와 매뉴얼 기준으로 자주 막히는 지점만 모았습니다.</p>
+    <div id="trouble"></div>
+    <h2 class="sec"><span class="ic">i</span><span data-t="s_spec">주요 제품 정보</span></h2>
+    <div class="card"><div class="grid g3" id="specs"></div></div>
+  </section>
+
+  <!-- ================= TAB 8 : QUIZ ================= -->
+  <section class="tab" id="tab-quiz" role="tabpanel">
+    <h2 class="sec"><span class="ic">?</span><span data-t="s_qz">기능 확인 퀴즈</span></h2>
+    <p class="lead" data-t="s_qzP">10문항입니다. 답을 고르면 바로 해설이 나옵니다.</p>
+    <div class="card row"><span class="score" id="qzScore">0 / 10</span><div class="spacer"></div>
+      <button class="btn ghost sm" id="btnQzReset"><span data-t="btnQzReset">다시 풀기</span></button></div>
+    <div id="quiz" style="margin-top:16px"></div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <p><b>MAONOCASTER AME2 (Maonocaster E2) 인터랙티브 연습실</b> · <span data-t="footMade">다인에듀 / 후안샘 제작</span></p>
+  <p data-t="footNote">조작부 설명은 Maono 공식 사용자 매뉴얼과 공식 FAQ를 기준으로 정리했습니다. 오디오 테스트 기능은 브라우저의 Web Audio API로 동작하며, 녹음 파일은 서버로 전송되지 않고 브라우저 안에서만 처리됩니다. 본 사이트는 Maono의 공식 제품이 아닙니다.</p>
+</footer>
+<div class="toast" id="toast"></div>
+<script src="i18n.js"></script>
+<script src="controls.js"></script>
+<script src="content.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
